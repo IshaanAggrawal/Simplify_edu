@@ -1,0 +1,118 @@
+{
+  "id": "linked-list-reversal",
+  "name": "Reverse Linked List",
+  "category": "Linked Lists",
+  "pattern": "Pointer Manipulation",
+  "difficulty": "Easy",
+  "leetcode_problems": [206],
+  "languages": {
+    "cpp": "ListNode* reverseList(ListNode* head) {\n    ListNode* prev = nullptr;\n    ListNode* curr = head;\n    while (curr != nullptr) {\n        ListNode* nextNode = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = nextNode;\n    }\n    return prev;\n}",
+    "python": "def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:\n    prev = None\n    curr = head\n    while curr:\n        nextNode = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nextNode\n    return prev"
+  },
+  "default_input": { "list": [1, 2, 3, 4, 5] },
+  "pattern_explanation": "Use three pointers: prev, curr, nextNode. Save next, reverse link, advance.",
+  "when_to_use": "When asked to reverse all or part of a linked list in-place.",
+  "time_complexity": "O(n)",
+  "space_complexity": "O(1)",
+  "steps": [
+    {
+      "step": 0,
+      "description": "Initial state. prev=NULL, curr points to head (node 1).",
+      "code_line": "ListNode* prev = nullptr; ListNode* curr = head;",
+      "variables": { "prev": null, "curr": 1, "nextNode": null },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[1, 2], [2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 1, "prev": null },
+      "highlighted_nodes": [1],
+      "reversed_edges": []
+    },
+    {
+      "step": 1,
+      "description": "Save the next node before modifying curr->next.",
+      "code_line": "ListNode* nextNode = curr->next;",
+      "variables": { "prev": null, "curr": 1, "nextNode": 2 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[1, 2], [2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 1, "prev": null, "next": 2 },
+      "highlighted_nodes": [1],
+      "reversed_edges": []
+    },
+    {
+      "step": 2,
+      "description": "Reverse the link: curr->next now points to prev.",
+      "code_line": "curr->next = prev;",
+      "variables": { "prev": null, "curr": 1, "nextNode": 2 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 1, "prev": null, "next": 2 },
+      "highlighted_nodes": [1],
+      "reversed_edges": []
+    },
+    {
+      "step": 3,
+      "description": "Move prev forward to curr.",
+      "code_line": "prev = curr;",
+      "variables": { "prev": 1, "curr": 1, "nextNode": 2 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 1, "prev": 1, "next": 2 },
+      "highlighted_nodes": [1],
+      "reversed_edges": []
+    },
+    {
+      "step": 4,
+      "description": "Move curr forward to nextNode.",
+      "code_line": "curr = nextNode;",
+      "variables": { "prev": 1, "curr": 2, "nextNode": 2 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 2, "prev": 1, "next": 2 },
+      "highlighted_nodes": [2],
+      "reversed_edges": []
+    },
+    {
+      "step": 5,
+      "description": "Save the next node.",
+      "code_line": "ListNode* nextNode = curr->next;",
+      "variables": { "prev": 1, "curr": 2, "nextNode": 3 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[2, 3], [3, 4], [4, 5]],
+      "pointers": { "curr": 2, "prev": 1, "next": 3 },
+      "highlighted_nodes": [2],
+      "reversed_edges": []
+    },
+    {
+      "step": 6,
+      "description": "Reverse the link.",
+      "code_line": "curr->next = prev;",
+      "variables": { "prev": 1, "curr": 2, "nextNode": 3 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[3, 4], [4, 5]],
+      "pointers": { "curr": 2, "prev": 1, "next": 3 },
+      "highlighted_nodes": [2],
+      "reversed_edges": [[2, 1]]
+    },
+    {
+      "step": 7,
+      "description": "Move prev forward to curr.",
+      "code_line": "prev = curr;",
+      "variables": { "prev": 2, "curr": 2, "nextNode": 3 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[3, 4], [4, 5]],
+      "pointers": { "curr": 2, "prev": 2, "next": 3 },
+      "highlighted_nodes": [2],
+      "reversed_edges": [[2, 1]]
+    },
+    {
+      "step": 8,
+      "description": "Move curr forward to nextNode.",
+      "code_line": "curr = nextNode;",
+      "variables": { "prev": 2, "curr": 3, "nextNode": 3 },
+      "nodes": [1, 2, 3, 4, 5],
+      "edges": [[3, 4], [4, 5]],
+      "pointers": { "curr": 3, "prev": 2, "next": 3 },
+      "highlighted_nodes": [3],
+      "reversed_edges": [[2, 1]]
+    }
+  ]
+}

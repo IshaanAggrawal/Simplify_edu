@@ -1,0 +1,84 @@
+{
+  "id": "binary-search",
+  "name": "Binary Search",
+  "category": "Arrays",
+  "pattern": "Binary Search",
+  "difficulty": "Easy",
+  "leetcode_problems": [704],
+  "languages": {
+    "cpp": "int search(vector<int>& nums, int target) {\n    int left = 0;\n    int right = nums.size() - 1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (nums[mid] == target) return mid;\n        if (nums[mid] < target) left = mid + 1;\n        else right = mid - 1;\n    }\n    return -1;\n}"
+  },
+  "default_input": { "nums": [-1,0,3,5,9,12], "target": 9 },
+  "pattern_explanation": "Maintain a search space [left, right]. Compare target to mid element to halve the search space.",
+  "when_to_use": "When searching for an element or condition in a SORTED array.",
+  "time_complexity": "O(log n)",
+  "space_complexity": "O(1)",
+  "steps": [
+    {
+      "step": 0,
+      "description": "Initialize left and right pointers.",
+      "code_line": "int left = 0; int right = nums.size() - 1;",
+      "variables": { "left": 0, "right": 5, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": -1, "right": 12 },
+      "highlighted_nodes": [-1, 12],
+      "reversed_edges": []
+    },
+    {
+      "step": 1,
+      "description": "Calculate mid pointer: 0 + (5-0)/2 = 2",
+      "code_line": "int mid = left + (right - left) / 2;",
+      "variables": { "left": 0, "right": 5, "mid": 2, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": -1, "mid": 3, "right": 12 },
+      "highlighted_nodes": [3],
+      "reversed_edges": []
+    },
+    {
+      "step": 2,
+      "description": "Check if nums[mid] (3) == target (9). It is not.",
+      "code_line": "if (nums[mid] == target) return mid;",
+      "variables": { "left": 0, "right": 5, "mid": 2, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": -1, "mid": 3, "right": 12 },
+      "highlighted_nodes": [3],
+      "reversed_edges": []
+    },
+    {
+      "step": 3,
+      "description": "Since nums[mid] (3) < target (9), move left pointer to mid + 1 (3)",
+      "code_line": "if (nums[mid] < target) left = mid + 1;",
+      "variables": { "left": 3, "right": 5, "mid": 2, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": 5, "mid": 3, "right": 12 },
+      "highlighted_nodes": [5],
+      "reversed_edges": []
+    },
+    {
+      "step": 4,
+      "description": "Calculate new mid pointer: 3 + (5-3)/2 = 4",
+      "code_line": "int mid = left + (right - left) / 2;",
+      "variables": { "left": 3, "right": 5, "mid": 4, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": 5, "mid": 9, "right": 12 },
+      "highlighted_nodes": [9],
+      "reversed_edges": []
+    },
+    {
+      "step": 5,
+      "description": "Check if nums[mid] (9) == target (9). It matches! Return mid.",
+      "code_line": "if (nums[mid] == target) return mid;",
+      "variables": { "left": 3, "right": 5, "mid": 4, "target": 9 },
+      "nodes": [-1,0,3,5,9,12],
+      "edges": [],
+      "pointers": { "left": 5, "mid": 9, "right": 12 },
+      "highlighted_nodes": [9],
+      "reversed_edges": []
+    }
+  ]
+}

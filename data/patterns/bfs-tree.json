@@ -1,0 +1,161 @@
+{
+  "id": "bfs-tree",
+  "name": "Binary Tree Level Order Traversal",
+  "category": "Trees",
+  "pattern": "BFS",
+  "difficulty": "Medium",
+  "leetcode_problems": [102],
+  "languages": {
+    "cpp": "vector<vector<int>> levelOrder(TreeNode* root) {\n    vector<vector<int>> res;\n    if (!root) return res;\n    queue<TreeNode*> q;\n    q.push(root);\n    while (!q.empty()) {\n        int size = q.size();\n        vector<int> level;\n        for (int i = 0; i < size; i++) {\n            TreeNode* node = q.front();\n            q.pop();\n            level.push_back(node->val);\n            if (node->left) q.push(node->left);\n            if (node->right) q.push(node->right);\n        }\n        res.push_back(level);\n    }\n    return res;\n}"
+  },
+  "default_input": { "root": [3,9,20,null,null,15,7] },
+  "pattern_explanation": "Use a queue to process nodes level by level. At each level, process all nodes currently in the queue.",
+  "when_to_use": "When you need to explore a tree level-by-level or find the shortest path in an unweighted graph.",
+  "time_complexity": "O(n)",
+  "space_complexity": "O(n)",
+  "steps": [
+    {
+      "step": 0,
+      "description": "Push root into queue.",
+      "code_line": "q.push(root);",
+      "variables": { "queue": "[3]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 3 },
+      "highlighted_nodes": [3],
+      "reversed_edges": []
+    },
+    {
+      "step": 1,
+      "description": "Pop 3 from queue.",
+      "code_line": "TreeNode* node = q.front(); q.pop();",
+      "variables": { "queue": "[]", "level": "[3]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 3 },
+      "highlighted_nodes": [3],
+      "reversed_edges": []
+    },
+    {
+      "step": 2,
+      "description": "Push left child 9 to queue.",
+      "code_line": "if (node->left) q.push(node->left);",
+      "variables": { "queue": "[9]", "level": "[3]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 3 },
+      "highlighted_nodes": [9],
+      "reversed_edges": []
+    },
+    {
+      "step": 3,
+      "description": "Push right child 20 to queue.",
+      "code_line": "if (node->right) q.push(node->right);",
+      "variables": { "queue": "[9, 20]", "level": "[3]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 3 },
+      "highlighted_nodes": [20],
+      "reversed_edges": []
+    },
+    {
+      "step": 4,
+      "description": "End of level. Add [3] to result.",
+      "code_line": "res.push_back(level);",
+      "variables": { "queue": "[9, 20]", "res": "[[3]]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": {},
+      "highlighted_nodes": [],
+      "reversed_edges": []
+    },
+    {
+      "step": 5,
+      "description": "Pop 9 from queue.",
+      "code_line": "TreeNode* node = q.front(); q.pop();",
+      "variables": { "queue": "[20]", "level": "[9]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 9 },
+      "highlighted_nodes": [9],
+      "reversed_edges": []
+    },
+    {
+      "step": 6,
+      "description": "Pop 20 from queue.",
+      "code_line": "TreeNode* node = q.front(); q.pop();",
+      "variables": { "queue": "[]", "level": "[9, 20]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 20 },
+      "highlighted_nodes": [20],
+      "reversed_edges": []
+    },
+    {
+      "step": 7,
+      "description": "Push left child 15 to queue.",
+      "code_line": "if (node->left) q.push(node->left);",
+      "variables": { "queue": "[15]", "level": "[9, 20]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 20 },
+      "highlighted_nodes": [15],
+      "reversed_edges": []
+    },
+    {
+      "step": 8,
+      "description": "Push right child 7 to queue.",
+      "code_line": "if (node->right) q.push(node->right);",
+      "variables": { "queue": "[15, 7]", "level": "[9, 20]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 20 },
+      "highlighted_nodes": [7],
+      "reversed_edges": []
+    },
+    {
+      "step": 9,
+      "description": "End of level. Add [9, 20] to result.",
+      "code_line": "res.push_back(level);",
+      "variables": { "queue": "[15, 7]", "res": "[[3], [9, 20]]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": {},
+      "highlighted_nodes": [],
+      "reversed_edges": []
+    },
+    {
+      "step": 10,
+      "description": "Pop 15 from queue.",
+      "code_line": "TreeNode* node = q.front(); q.pop();",
+      "variables": { "queue": "[7]", "level": "[15]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 15 },
+      "highlighted_nodes": [15],
+      "reversed_edges": []
+    },
+    {
+      "step": 11,
+      "description": "Pop 7 from queue.",
+      "code_line": "TreeNode* node = q.front(); q.pop();",
+      "variables": { "queue": "[]", "level": "[15, 7]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": { "curr": 7 },
+      "highlighted_nodes": [7],
+      "reversed_edges": []
+    },
+    {
+      "step": 12,
+      "description": "End of level. Add [15, 7] to result.",
+      "code_line": "res.push_back(level);",
+      "variables": { "queue": "[]", "res": "[[3], [9, 20], [15, 7]]" },
+      "nodes": [3,9,20,15,7],
+      "edges": [[3,9],[3,20],[20,15],[20,7]],
+      "pointers": {},
+      "highlighted_nodes": [],
+      "reversed_edges": []
+    }
+  ]
+}

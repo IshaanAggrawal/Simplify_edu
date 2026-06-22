@@ -1,0 +1,29 @@
+{
+  "id": "two-pointers",
+  "name": "Two Pointers (Container With Most Water)",
+  "category": "Arrays",
+  "pattern": "Two Pointers",
+  "difficulty": "Medium",
+  "leetcode_problems": [11],
+  "languages": {
+    "cpp": "int maxArea(vector<int>& height) {\n    int left = 0;\n    int right = height.size() - 1;\n    int maxArea = 0;\n    while (left < right) {\n        int currentArea = min(height[left], height[right]) * (right - left);\n        maxArea = max(maxArea, currentArea);\n        if (height[left] < height[right]) left++;\n        else right--;\n    }\n    return maxArea;\n}"
+  },
+  "default_input": { "height": [1,8,6,2,5,4,8,3,7] },
+  "pattern_explanation": "Use two pointers starting at both ends. Move the pointer pointing to the shorter line inward.",
+  "when_to_use": "When searching for pairs in a sorted array, or optimizing area/distance between two elements.",
+  "time_complexity": "O(n)",
+  "space_complexity": "O(1)",
+  "steps": [
+    {
+      "step": 0,
+      "description": "Initialize left at start, right at end.",
+      "code_line": "int left = 0; int right = height.size() - 1;",
+      "variables": { "left": 0, "right": 8, "maxArea": 0 },
+      "nodes": [1,8,6,2,5,4,8,3,7],
+      "edges": [],
+      "pointers": { "left": 1, "right": 7 },
+      "highlighted_nodes": [1, 7],
+      "reversed_edges": []
+    }
+  ]
+}
