@@ -31,6 +31,7 @@ export function validateSteps(steps: any[]): { isValid: boolean; sanitizedSteps:
       step: s.step,
       description: s.description,
       code_line: s.code_line,
+      data_structure_type: s.data_structure_type || undefined,
       variables,
       nodes,
       edges,

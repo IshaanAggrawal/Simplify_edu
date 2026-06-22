@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { aiClient, isAiEnabled, MODEL_NAME } from '../../../lib/ai/client';
 import { CODE_TRACER_PROMPT } from '../../../lib/ai/prompts';
 import { validateSteps } from '../../../lib/ai/validate-steps';
-import { syncUser, checkDailyLimit, incrementUsage, saveVisualization } from '../../../lib/db/actions';
+import { syncUser, checkDailyLimit, incrementUsage, saveVisualization, checkSpamRateLimit } from '../../../lib/db/actions';
 
 import linkedListReversalMock from '../../../data/patterns/linked-list-reversal.json';
 
@@ -28,10 +28,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found in database.' }, { status: 404 });
     }
 
-    const { allowed, used, limit } = await checkDailyLimit(localUser.id, localUser.plan);
+    const isNotSpamming = await checkSpamRateLimit(localUser.id);
+    if (!isNotSpamming) {
+      return NextResponse.json({ error: 'You are sending requests too quickly. Please wait a minute and try again to prevent spam.' }, { status: 429 });
+    }
+
+    const { allowed, used, limit } = await checkDailyLimit(localUser.id, localUser.plan, 'trace');
     if (!allowed) {
       return NextResponse.json({
-        error: `Daily limit reached. Your ${localUser.plan} plan allows ${limit} AI traces per day. You've used ${used}/${limit} today. Upgrade to get more!`,
+        error: `Daily limit reached. Your ${localUser.plan} plan allows ${limit === -1 ? 'unlimited' : limit} AI traces per day. Upgrade to get more!`,
         limitReached: true,
         used,
         limit,

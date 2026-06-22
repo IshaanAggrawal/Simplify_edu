@@ -41,7 +41,10 @@ export async function POST(req: Request) {
 
     // Upgrade the user
     await db.update(users)
-      .set({ plan: targetTier })
+      .set({ 
+        plan: targetTier,
+        stripeCustomerId: session.customer as string 
+      })
       .where(eq(users.id, localUser.id));
 
     return NextResponse.json({ success: true, message: `Successfully upgraded to ${targetTier}` });

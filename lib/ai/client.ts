@@ -8,7 +8,7 @@ export const aiClient = new OpenAI({
   apiKey: apiKey || 'dummy-key-for-build',
 });
 
-export const MODEL_NAME = 'deepseek-ai/deepseek-v4-pro';
+export const MODEL_NAME = 'meta/llama-3.1-70b-instruct';
 
 export const isAiEnabled = () => {
   return typeof process.env.NVIDIA_API_KEY === 'string' && process.env.NVIDIA_API_KEY.startsWith('nvapi-');

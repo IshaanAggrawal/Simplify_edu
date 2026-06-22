@@ -5,6 +5,7 @@ import slidingWindow from './sliding-window.json';
 import bfsTree from './bfs-tree.json';
 import binarySearch from './binary-search.json';
 import dijkstra from './dijkstra.json';
+import kadanes from './kadanes.json';
 
 export const PATTERNS: Record<string, PatternData> = {
   'linked-list-reversal': linkedListReversal as unknown as PatternData,
@@ -13,6 +14,7 @@ export const PATTERNS: Record<string, PatternData> = {
   'bfs-tree': bfsTree as unknown as PatternData,
   'binary-search': binarySearch as unknown as PatternData,
   'dijkstra': dijkstra as unknown as PatternData,
+  'kadanes-algorithm': kadanes as unknown as PatternData,
 };
 
 export const PATTERNS_LIST = Object.values(PATTERNS);

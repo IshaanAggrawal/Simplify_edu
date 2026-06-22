@@ -4,6 +4,8 @@ export interface VisualizationStep {
   step: number;
   description: string;
   code_line: string;
+  data_structure_type?: 'array' | 'list' | 'tree' | 'graph' | 'matrix' | 'call_stack';
+  matrix_rows?: number;
   variables: Record<string, string | number | null>;
   nodes: number[];
   edges: [number, number][]; // [fromNode, toNode]

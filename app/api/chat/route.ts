@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { aiClient, isAiEnabled, MODEL_NAME } from '../../../lib/ai/client';
-import { syncUser, getChatContext, saveChatMessage, updateChatSummary } from '../../../lib/db/actions';
+import { syncUser, getChatContext, saveChatMessage, updateChatSummary, checkSpamRateLimit, checkDailyLimit, incrementUsage } from '../../../lib/db/actions';
 
 const SYSTEM_PROMPT = `You are AlgoViz AI, an expert software engineer and teacher.
 You are helping a user understand their algorithm execution trace.
@@ -19,6 +19,18 @@ export async function POST(req: Request) {
     const localUser = await syncUser();
     if (!localUser || localUser.plan === 'free') {
       return NextResponse.json({ error: 'AI Chat is a Pro feature.' }, { status: 403 });
+    }
+
+    const isNotSpamming = await checkSpamRateLimit(localUser.id);
+    if (!isNotSpamming) {
+      return NextResponse.json({ error: 'You are sending messages too quickly. Please wait a minute and try again.' }, { status: 429 });
+    }
+
+    const { allowed, used, limit } = await checkDailyLimit(localUser.id, localUser.plan, 'chat');
+    if (!allowed) {
+      return NextResponse.json({ 
+        error: `Daily chat limit reached. Your ${localUser.plan} plan allows ${limit === -1 ? 'unlimited' : limit} messages per day.` 
+      }, { status: 429 });
     }
 
     const { message, sessionId, codeContext } = await req.json();
@@ -75,6 +87,8 @@ export async function POST(req: Request) {
     if (recentMessages.length >= 5) {
       generateSummaryAsync(localUser.id, sessionId, summary, recentMessages).catch(console.error);
     }
+
+    await incrementUsage(localUser.id, 'chat');
 
     return NextResponse.json({ reply });
   } catch (error: any) {

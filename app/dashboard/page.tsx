@@ -17,9 +17,9 @@ export default async function DashboardPage() {
 
   const { recentVisualizations, runsToday } = await getUserDashboardData(user.id);
 
-  const maxRuns = PLAN_LIMITS[user.plan] || 3;
-  const runsRemaining = Math.max(0, maxRuns - runsToday);
-  const usagePercentage = Math.min(100, Math.round((runsToday / maxRuns) * 100));
+  const maxRuns = (PLAN_LIMITS[user.plan]?.traces) ?? 3;
+  const runsRemaining = maxRuns === -1 ? -1 : Math.max(0, maxRuns - runsToday);
+  const usagePercentage = maxRuns === -1 ? 0 : Math.min(100, Math.round((runsToday / maxRuns) * 100));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
 
               <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-between">
                 <span className={`text-sm ${runsRemaining === 0 ? 'text-red-500 font-semibold' : 'text-[var(--color-text-secondary)]'}`}>
-                  {runsRemaining} runs remaining
+                  {runsRemaining === -1 ? 'Unlimited traces available' : `${runsRemaining} runs remaining`}
                 </span>
                 {user.plan === 'free' && (
                   <Link href="/pricing" className="text-sm text-[var(--color-accent)] hover:underline">

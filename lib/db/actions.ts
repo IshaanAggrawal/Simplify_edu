@@ -1,6 +1,6 @@
 import { db } from './index';
-import { users, visualizations, usage, chatMessages, chatSummaries } from './schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { users, visualizations, usage, chatMessages, chatSummaries, feedback } from './schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
 import { PLAN_LIMITS } from '../stripe';
 
@@ -33,19 +33,31 @@ export async function syncUser() {
 // ────────────────────────────────────────────────
 // Usage — check limit and increment
 // ────────────────────────────────────────────────
-export async function checkDailyLimit(userId: number, plan: string): Promise<{ allowed: boolean; used: number; limit: number }> {
+export async function checkDailyLimit(
+  userId: number,
+  plan: string,
+  type: 'trace' | 'chat' = 'trace'
+): Promise<{ allowed: boolean; used: number; limit: number }> {
   const today = new Date().toISOString().split('T')[0];
-  const limit = PLAN_LIMITS[plan] ?? 3;
+  
+  // Fallback limits if plan not found
+  const defaultLimits = { traces: 3, chats: 0 };
+  const planLimits = PLAN_LIMITS[plan] ?? defaultLimits;
+  const limit = type === 'trace' ? planLimits.traces : planLimits.chats;
 
   const todayUsage = await db.query.usage.findFirst({
     where: and(eq(usage.userId, userId), eq(usage.date, today))
   });
 
-  const used = todayUsage?.runCount ?? 0;
-  return { allowed: used < limit, used, limit };
+  const used = type === 'trace' ? (todayUsage?.runCount ?? 0) : (todayUsage?.chatCount ?? 0);
+  
+  // -1 means unlimited
+  const allowed = limit === -1 || used < limit;
+  
+  return { allowed, used, limit };
 }
 
-export async function incrementUsage(userId: number): Promise<void> {
+export async function incrementUsage(userId: number, type: 'trace' | 'chat' = 'trace'): Promise<void> {
   const today = new Date().toISOString().split('T')[0];
 
   const existing = await db.query.usage.findFirst({
@@ -53,12 +65,44 @@ export async function incrementUsage(userId: number): Promise<void> {
   });
 
   if (existing) {
-    await db.update(usage)
-      .set({ runCount: existing.runCount + 1 })
-      .where(eq(usage.id, existing.id));
+    if (type === 'trace') {
+      await db.update(usage).set({ runCount: existing.runCount + 1 }).where(eq(usage.id, existing.id));
+    } else {
+      await db.update(usage).set({ chatCount: existing.chatCount + 1 }).where(eq(usage.id, existing.id));
+    }
   } else {
-    await db.insert(usage).values({ userId, date: today, runCount: 1 });
+    if (type === 'trace') {
+      await db.insert(usage).values({ userId, date: today, runCount: 1, chatCount: 0 });
+    } else {
+      await db.insert(usage).values({ userId, date: today, runCount: 0, chatCount: 1 });
+    }
   }
+}
+
+// ────────────────────────────────────────────────
+// Spam Protection (Global DB Check)
+// ────────────────────────────────────────────────
+export async function checkSpamRateLimit(userId: number): Promise<boolean> {
+  // Prevent more than 5 requests per minute combined (traces + chats)
+  // Check how many traces in last minute
+  const recentTraces = await db.query.visualizations.findMany({
+    where: and(
+      eq(visualizations.userId, userId),
+      sql`${visualizations.createdAt} > NOW() - INTERVAL '1 minute'`
+    )
+  });
+
+  // Check how many chats in last minute
+  const recentChats = await db.query.chatMessages.findMany({
+    where: and(
+      eq(chatMessages.userId, userId),
+      eq(chatMessages.role, 'user'),
+      sql`${chatMessages.createdAt} > NOW() - INTERVAL '1 minute'`
+    )
+  });
+
+  const totalRecentRequests = recentTraces.length + recentChats.length;
+  return totalRecentRequests < 5;
 }
 
 // ────────────────────────────────────────────────
@@ -132,4 +176,11 @@ export async function updateChatSummary(userId: number, sessionId: string, summa
   } else {
     await db.insert(chatSummaries).values({ userId, sessionId, summary });
   }
+}
+
+// ────────────────────────────────────────────────
+// Feedback / Bug Reports
+// ────────────────────────────────────────────────
+export async function submitFeedback(userId: number | null, type: string, message: string) {
+  return db.insert(feedback).values({ userId, type, message }).returning();
 }

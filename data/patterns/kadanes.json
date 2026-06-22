@@ -1,0 +1,30 @@
+{
+  "id": "kadanes-algorithm",
+  "name": "Kadane's Algorithm",
+  "category": "Arrays",
+  "pattern": "Maximum Subarray",
+  "difficulty": "Medium",
+  "leetcode_problems": [53],
+  "languages": {
+    "cpp": "int maxSubArray(vector<int>& nums) {\n    int maxSum = nums[0];\n    int currentSum = 0;\n    for (int num : nums) {\n        currentSum = max(num, currentSum + num);\n        maxSum = max(maxSum, currentSum);\n    }\n    return maxSum;\n}"
+  },
+  "default_input": "[[-2, 1, -3, 4, -1, 2, 1, -5, 4]]",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Initialize maxSum and currentSum.",
+      "code_line": "int maxSum = nums[0];",
+      "data_structure_type": "array",
+      "variables": { "maxSum": -2, "currentSum": 0 },
+      "nodes": [-2, 1, -3, 4, -1, 2, 1, -5, 4],
+      "edges": [],
+      "pointers": { "curr": -2 },
+      "highlighted_nodes": [-2],
+      "reversed_edges": []
+    }
+  ],
+  "pattern_explanation": "Kadane's Algorithm is an iterative dynamic programming algorithm used to find the maximum sum contiguous subarray within a one-dimensional array of numbers.",
+  "when_to_use": "When you need to find the maximum sum of a contiguous subarray.",
+  "time_complexity": "O(n)",
+  "space_complexity": "O(1)"
+}

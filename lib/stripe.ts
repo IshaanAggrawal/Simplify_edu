@@ -5,10 +5,10 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy
 });
 
 // Plan limits per day for AI traces
-export const PLAN_LIMITS: Record<string, number> = {
-  free: 3,
-  pro: 20,
-  pro_max: 50,
+export const PLAN_LIMITS: Record<string, { traces: number; chats: number }> = {
+  free: { traces: 3, chats: 0 },
+  pro: { traces: 20, chats: 50 },
+  pro_max: { traces: 50, chats: -1 }, // -1 means unlimited
 };
 
 // Stripe product metadata — amounts in cents

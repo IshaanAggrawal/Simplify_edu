@@ -10,13 +10,18 @@ import { StepDescription } from '../../components/visualizer/step-description';
 import { usePlayback } from '../../hooks/use-playback';
 import { useTraceHistory } from '../../hooks/use-trace-history';
 import { VisualizationStep } from '../../lib/types/visualization';
+import { ChatPanel } from '../../components/app/chat-panel';
+import { BugReportPanel } from '../../components/app/bug-report-panel';
 
 export default function AppOverviewPage() {
   const [code, setCode] = useState('// Paste your code here\n// We will trace it step by step\n');
+  const [input, setInput] = useState('[]');
   const [language, setLanguage] = useState('cpp');
   const [isTracing, setIsTracing] = useState(false);
   const [steps, setSteps] = useState<VisualizationStep[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
+  const [activeTab, setActiveTab] = useState<'animation' | 'chat' | 'bug'>('animation');
 
   const { history, saveTrace } = useTraceHistory();
 
@@ -28,6 +33,7 @@ export default function AppOverviewPage() {
   const handleAnimate = async (input: string) => {
     setIsTracing(true);
     setError(null);
+    setLimitReached(false);
     pause();
 
     try {
@@ -37,11 +43,19 @@ export default function AppOverviewPage() {
         body: JSON.stringify({ code, input, language })
       });
 
-      if (!res.ok) {
-        throw new Error(`Failed to trace: ${res.statusText}`);
+      const data = await res.json();
+
+      if (res.status === 429) {
+        setLimitReached(true);
+        setError(data.error || 'Daily limit reached.');
+        setSteps([]);
+        return;
       }
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to trace: ${res.statusText}`);
+      }
+
       if (data.error) throw new Error(data.error);
 
       setSteps(data.steps || []);
@@ -100,9 +114,19 @@ export default function AppOverviewPage() {
             </div>
           )}
           
-          {error && (
+          {error && !limitReached && (
             <div className="mt-4 p-3 bg-[var(--color-error)]/10 border border-[var(--color-error)]/30 text-[var(--color-error)] rounded text-sm">
               <span className="font-semibold">Trace failed:</span> {error}
+            </div>
+          )}
+
+          {limitReached && (
+            <div className="mt-4 p-4 bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/30 rounded-lg text-sm text-center">
+              <div className="font-semibold text-[var(--color-text-primary)] mb-1">Daily limit reached 🚀</div>
+              <div className="text-[var(--color-text-secondary)] mb-3 text-xs">{error}</div>
+              <a href="/pricing" className="inline-block bg-[var(--color-accent)] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[var(--color-accent-hover)] transition-colors">
+                Upgrade Plan →
+              </a>
             </div>
           )}
 
@@ -137,7 +161,7 @@ export default function AppOverviewPage() {
           <div className="flex-1 flex flex-col bg-[var(--color-bg-surface)] rounded-md border border-[var(--color-border)] overflow-hidden shadow-sm">
             {steps.length > 0 ? (
               <>
-                <VisualizationCanvas stepData={steps[currentStep]} layoutType="list" />
+                <VisualizationCanvas stepData={steps[currentStep]} />
                 <PlaybackControls 
                   currentStep={currentStep}
                   totalSteps={steps.length}
@@ -162,11 +186,37 @@ export default function AppOverviewPage() {
             )}
           </div>
           
-          {/* Mock Tab Bar (Week 2 features) */}
+          {/* Tab Bar */}
           <div className="mt-4 flex border-b border-[var(--color-border)]">
-            <button className="px-4 py-2 border-b-2 border-[var(--color-accent)] text-[var(--color-accent)] font-medium text-sm">Animation</button>
-            <button className="px-4 py-2 border-b-2 border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] font-medium text-sm cursor-not-allowed" title="Coming in Week 2">Bug Report (Pro)</button>
-            <button className="px-4 py-2 border-b-2 border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] font-medium text-sm cursor-not-allowed" title="Coming in Week 2">AI Chat (Pro)</button>
+            <button 
+              onClick={() => setActiveTab('animation')}
+              className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'animation' ? 'border-[var(--color-accent)] text-[var(--color-accent)]' : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
+            >
+              Animation
+            </button>
+            <button 
+              onClick={() => setActiveTab('bug')}
+              className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'bug' ? 'border-[var(--color-accent)] text-[var(--color-accent)]' : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
+            >
+              Bug Report
+            </button>
+            <button 
+              onClick={() => setActiveTab('chat')}
+              className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${activeTab === 'chat' ? 'border-[var(--color-accent)] text-[var(--color-accent)]' : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
+            >
+              AI Chat
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/20 text-[var(--color-accent)]">PRO</span>
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="mt-4 flex-1 flex flex-col min-h-0">
+            {activeTab === 'chat' && (
+              <ChatPanel currentCode={code} currentStepData={steps[currentStep]} />
+            )}
+            {activeTab === 'bug' && (
+              <BugReportPanel />
+            )}
           </div>
         </div>
 

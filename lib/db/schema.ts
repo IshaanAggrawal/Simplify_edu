@@ -26,6 +26,7 @@ export const usage = pgTable('usage', {
   userId: integer('user_id').references(() => users.id).notNull(),
   date: text('date').notNull(), // YYYY-MM-DD string for simple tracking
   runCount: integer('run_count').default(0).notNull(),
+  chatCount: integer('chat_count').default(0).notNull(),
 });
 
 export const savedPatterns = pgTable('saved_patterns', {
@@ -52,4 +53,14 @@ export const chatSummaries = pgTable('chat_summaries', {
   sessionId: text('session_id').notNull().unique(),
   summary: text('summary').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Feedback and bug reports from users
+export const feedback = pgTable('feedback', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  type: text('type').notNull(), // 'bug', 'feature', 'general'
+  message: text('message').notNull(),
+  status: text('status').default('open').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
