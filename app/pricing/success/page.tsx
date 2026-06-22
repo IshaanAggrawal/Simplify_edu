@@ -5,23 +5,24 @@ import { db } from '../../../lib/db';
 import { users } from '../../../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { Navbar } from '../../../components/ui/navbar';
-import { Footer } from '../../../components/ui/footer';
 import { Button } from '../../../components/ui/button';
-
 import { AutoRedirect } from './auto-redirect';
 
 export default async function PricingSuccessPage({ 
-  searchParams 
+  searchParams
 }: { 
-  searchParams: { session_id?: string } 
+  searchParams: Promise<{ session_id?: string }>
 }) {
-  const sessionId = searchParams.session_id;
+  // ✅ FIXED: Next.js 16 requires awaiting searchParams
+  const params = await searchParams;
+  const sessionId = params.session_id;
   
   if (!sessionId) {
     redirect('/pricing');
   }
 
   let success = false;
+  let tier = '';
   let errorMsg = '';
 
   try {
@@ -29,7 +30,7 @@ export default async function PricingSuccessPage({
     
     if (session.payment_status === 'paid') {
       const dbUserId = session.metadata?.userId;
-      const tier = session.metadata?.tier;
+      tier = session.metadata?.tier || '';
       
       if (dbUserId && tier) {
         // Update user's plan in DB
@@ -39,7 +40,7 @@ export default async function PricingSuccessPage({
         
         success = true;
       } else {
-        errorMsg = 'Invalid session metadata.';
+        errorMsg = 'Invalid session metadata. Please contact support.';
       }
     } else {
       errorMsg = 'Payment was not successful or is still pending.';
@@ -49,55 +50,64 @@ export default async function PricingSuccessPage({
     errorMsg = 'Could not verify your payment session.';
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg-base)]">
-      <Navbar />
-      
-      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        {success ? (
-          <div className="max-w-md w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-8 shadow-xl shadow-[var(--color-accent)]/10">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-success)]/20 text-[var(--color-success)] flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            </div>
-            
-            <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
-            <p className="text-[var(--color-text-secondary)] mb-8">
-              Welcome to the upgraded experience. Your account has been instantly upgraded.
-            </p>
-            
-            <Link href="/app">
-              <Button className="w-full h-12 shadow-[0_0_20px_rgba(123,111,240,0.3)]">
-                Start Animating Code &rarr;
-              </Button>
-            </Link>
+  const tierLabel = tier === 'pro' ? 'Pro' : tier === 'pro_max' ? 'Pro Max' : tier === 'lifetime' ? 'Lifetime' : 'Premium';
 
-            <AutoRedirect to="/dashboard" delay={2000} />
-          </div>
-        ) : (
-          <div className="max-w-md w-full rounded-2xl border border-[var(--color-error)]/30 bg-[var(--color-bg-surface)] p-8 shadow-xl">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-error)]/20 text-[var(--color-error)] flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--color-bg-base)] p-6">
+      {success ? (
+        <div className="max-w-md w-full rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-bg-surface)] p-10 shadow-2xl shadow-[var(--color-accent)]/10 text-center">
+          {/* Animated check */}
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full bg-[var(--color-accent)]/20 animate-ping opacity-50" />
+            <div className="relative w-20 h-20 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center">
+              <svg className="w-10 h-10 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            
-            <h1 className="text-2xl font-bold mb-2">Payment Verification Failed</h1>
-            <p className="text-[var(--color-text-secondary)] mb-8">
-              {errorMsg}
-            </p>
-            
-            <Link href="/pricing">
-              <Button variant="outline" className="w-full h-12 border-[var(--color-border)]">
-                Return to Pricing
-              </Button>
-            </Link>
           </div>
-        )}
-      </main>
-      
-      <Footer />
+
+          <div className="inline-flex items-center gap-2 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 text-[var(--color-accent)] text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+            {tierLabel} Activated
+          </div>
+          
+          <h1 className="text-3xl font-bold mb-3">Payment Successful!</h1>
+          <p className="text-[var(--color-text-secondary)] mb-8 leading-relaxed">
+            Your account has been instantly upgraded to <strong className="text-[var(--color-text-primary)]">{tierLabel}</strong>. You now have access to all {tierLabel} features.
+          </p>
+          
+          <Link href="/app">
+            <Button className="w-full h-12 text-base shadow-[0_0_20px_rgba(123,111,240,0.4)] mb-4">
+              Start Animating Code →
+            </Button>
+          </Link>
+
+          <Link href="/dashboard">
+            <Button variant="outline" className="w-full h-10 text-sm border-[var(--color-border)]">
+              Go to Dashboard
+            </Button>
+          </Link>
+
+          {/* Auto-redirect countdown */}
+          <AutoRedirect to="/dashboard" delay={3000} />
+        </div>
+      ) : (
+        <div className="max-w-md w-full rounded-2xl border border-red-500/20 bg-[var(--color-bg-surface)] p-10 text-center shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-3">Verification Failed</h1>
+          <p className="text-[var(--color-text-secondary)] mb-8">{errorMsg}</p>
+          
+          <Link href="/pricing">
+            <Button variant="outline" className="w-full h-12 border-[var(--color-border)]">
+              Return to Pricing
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

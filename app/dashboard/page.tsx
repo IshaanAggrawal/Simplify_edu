@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { syncUser, getUserDashboardData } from '../../lib/db/actions';
+import { PLAN_LIMITS } from '../../lib/stripe';
 import Link from 'next/link';
 
 export default async function DashboardPage() {
@@ -16,9 +17,9 @@ export default async function DashboardPage() {
 
   const { recentVisualizations, runsToday } = await getUserDashboardData(user.id);
 
-  // Free tier has 3 runs per day
-  const maxRuns = 3;
-  const runsRemaining = user.plan === 'free' ? Math.max(0, maxRuns - runsToday) : 'Unlimited';
+  const maxRuns = PLAN_LIMITS[user.plan] || 3;
+  const runsRemaining = Math.max(0, maxRuns - runsToday);
+  const usagePercentage = Math.min(100, Math.round((runsToday / maxRuns) * 100));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -44,10 +45,19 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="flex items-baseline space-x-2">
                 <span className="text-4xl font-mono font-medium">{runsToday}</span>
-                <span className="text-[var(--color-text-muted)]">traces run today</span>
+                <span className="text-[var(--color-text-muted)]">/ {maxRuns} traces run today</span>
               </div>
+              
+              {/* Usage Meter */}
+              <div className="w-full h-2 bg-[var(--color-bg-elevated)] rounded-full mt-4 mb-2 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-1000 ${usagePercentage > 90 ? 'bg-red-500' : 'bg-[var(--color-accent)]'}`}
+                  style={{ width: `${usagePercentage}%` }}
+                />
+              </div>
+
               <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-between">
-                <span className="text-sm text-[var(--color-text-secondary)]">
+                <span className={`text-sm ${runsRemaining === 0 ? 'text-red-500 font-semibold' : 'text-[var(--color-text-secondary)]'}`}>
                   {runsRemaining} runs remaining
                 </span>
                 {user.plan === 'free' && (
@@ -55,30 +65,40 @@ export default async function DashboardPage() {
                     Upgrade to Pro
                   </Link>
                 )}
+                {user.plan === 'pro' && runsRemaining === 0 && (
+                  <Link href="/pricing" className="text-sm text-[var(--color-accent)] hover:underline">
+                    Get Pro Max
+                  </Link>
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Plan Card */}
-          <Card>
+          <Card className={user.plan !== 'free' ? 'border-[var(--color-accent)] shadow-md shadow-[var(--color-accent)]/10' : ''}>
             <CardHeader>
-              <CardTitle className="text-lg">Current Plan</CardTitle>
+              <CardTitle className="text-lg flex justify-between items-center">
+                Current Plan
+                {user.plan !== 'free' && <div className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse" title="Active" />}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between mb-4">
-                <span className="capitalize text-2xl font-semibold">{user.plan}</span>
-                <Badge variant={user.plan === 'pro' || user.plan === 'lifetime' ? 'success' : 'default'}>
-                  {user.plan === 'free' ? 'Basic Features' : 'Premium'}
+                <span className="capitalize text-2xl font-semibold">{user.plan.replace('_', ' ')}</span>
+                <Badge variant={user.plan !== 'free' ? 'success' : 'default'}>
+                  {user.plan === 'free' ? 'Basic Features' : 'Premium Active'}
                 </Badge>
               </div>
               <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                {user.plan === 'free' ? 'Upgrade to get unlimited AI animations and chat capabilities.' : 'You have access to all premium features.'}
+                {user.plan === 'free' 
+                  ? 'Upgrade to get up to 50 AI animations and chat capabilities.' 
+                  : `You have access to premium features and ${maxRuns} AI traces/day.`}
               </p>
-              {user.plan === 'free' && (
-                <Link href="/pricing">
-                  <Button variant="outline" className="w-full">View Plans</Button>
-                </Link>
-              )}
+              <Link href="/pricing">
+                <Button variant={user.plan === 'free' ? 'primary' : 'outline'} className="w-full">
+                  {user.plan === 'free' ? 'Upgrade Plan' : 'Manage Subscription'}
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 

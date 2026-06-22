@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const tier = (body.plan || body.tier) as 'pro' | 'lifetime';
+    const tier = (body.plan || body.tier) as 'pro' | 'pro_max';
 
     if (!tier || !PRICING[tier]) {
       return NextResponse.json({ error: 'Invalid subscription tier' }, { status: 400 });

@@ -5,7 +5,9 @@ export const users = pgTable('users', {
   clerkId: text('clerk_id').notNull().unique(),
   email: text('email').notNull().unique(),
   name: text('name'),
-  plan: text('plan').default('free').notNull(), // 'free', 'pro', 'lifetime'
+  // 'free' | 'pro' | 'pro_max' | 'lifetime'
+  plan: text('plan').default('free').notNull(),
+  stripeCustomerId: text('stripe_customer_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -31,4 +33,23 @@ export const savedPatterns = pgTable('saved_patterns', {
   userId: integer('user_id').references(() => users.id).notNull(),
   patternSlug: text('pattern_slug').notNull(),
   savedAt: timestamp('saved_at').defaultNow().notNull(),
+});
+
+// Chat message storage for AI Chat feature
+export const chatMessages = pgTable('chat_messages', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  sessionId: text('session_id').notNull(), // groups messages per visualization session
+  role: text('role').notNull(), // 'user' | 'assistant'
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Rolling summary of chat history older than last 5 messages
+export const chatSummaries = pgTable('chat_summaries', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  sessionId: text('session_id').notNull().unique(),
+  summary: text('summary').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

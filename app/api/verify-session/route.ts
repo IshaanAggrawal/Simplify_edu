@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     const targetTier = session.metadata?.tier;
-    if (!targetTier || (targetTier !== 'pro' && targetTier !== 'lifetime')) {
+    if (!targetTier || (targetTier !== 'pro' && targetTier !== 'pro_max')) {
       return NextResponse.json({ error: 'Invalid tier in session metadata' }, { status: 400 });
     }
 
